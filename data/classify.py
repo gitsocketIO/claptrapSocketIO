@@ -22,6 +22,29 @@ from vban_manager import get_vban_detector  # Import the get_vban_detector funct
 import warnings
 from audio_detector import AudioDetector
 
+def classify_sound(score):
+    if score < 0.5:
+        return "finger_snap"
+    elif score < 0.7:
+        return "clap"
+    else:
+        return "knock"
+
+def send_classified_webhook(webhook_url, score):
+    import time
+    payload = {
+        "event": classify_sound(score),
+        "score": score,
+        "timestamp": time.time()
+    }
+    try:
+        response = requests.post(webhook_url, json=payload, timeout=5)
+        response.raise_for_status()
+        logging.info(f"Webhook envoyé : {payload}")
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Erreur lors de l'envoi du webhook : {e}")
+
+
 # Configuration du logging en DEBUG
 logging.basicConfig(
     level=logging.DEBUG,
@@ -234,7 +257,8 @@ def run_detection(model, max_results, score_threshold, overlapping_factor, socke
                     # Utiliser le webhook_url passé au callback
                     if webhook_url:
                         logging.info(f"Envoi webhook pour {source_name} vers {webhook_url}")
-                        requests.post(webhook_url)
+                        # requests.post(webhook_url)
+                        send_classified_webhook(webhook_url, detection_data['score'])
                 except Exception as e:
                     logging.error(f"Erreur lors de l'envoi de l'événement clap pour {source_name}: {str(e)}")
             return handle_detection
