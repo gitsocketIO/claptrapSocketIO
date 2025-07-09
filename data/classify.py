@@ -263,12 +263,13 @@ def run_detection(model, max_results, score_threshold, overlapping_factor, socke
                     logging.error(f"Erreur lors de l'envoi de l'événement clap pour {source_name}: {str(e)}")
             return handle_detection
         
-        def create_labels_callback(source_name):
+        def create_labels_callback(source_name, webhook_url=None):
             def handle_labels(labels):
                 logging.debug(f"Labels détectés sur {source_name}: {labels}")
                 if socketio:
                     socketio.emit("labels", {"source": source_name, "detected": labels})
-                # Vérification des labels pour déclencher un webhook
+
+                # Déclencher un webhook sur détection de "Finger snapping"
                 for label_data in labels:
                     if label_data["label"] == "Finger snapping" and label_data["score"] >= 0.7:
                         logging.info(f"Envoi webhook pour 'Finger snapping' sur {source_name}")
@@ -302,7 +303,7 @@ def run_detection(model, max_results, score_threshold, overlapping_factor, socke
             detector.add_source(
                 source_id=source_id,
                 detection_callback=create_detection_callback(source_id, webhook_url_to_use),
-                labels_callback=create_labels_callback(source_id)
+                labels_callback=create_labels_callback(source_id, webhook_url_to_use)
             )
             
             # Démarrer la détection
@@ -333,7 +334,7 @@ def run_detection(model, max_results, score_threshold, overlapping_factor, socke
             detector.add_source(
                 source_id=source_id,
                 detection_callback=create_detection_callback(source_id, webhook_url_to_use),
-                labels_callback=create_labels_callback(source_id)
+                labels_callback=create_labels_callback(source_id, webhook_url_to_use)
             )
             
             # Démarrer la détection
@@ -377,7 +378,7 @@ def run_detection(model, max_results, score_threshold, overlapping_factor, socke
             detector.add_source(
                 source_id=source_id,
                 detection_callback=create_detection_callback(source_id, webhook_url_to_use),
-                labels_callback=create_labels_callback(source_id)
+                labels_callback=create_labels_callback(source_id, webhook_url_to_use)
             )
             
             # Démarrer la détection
