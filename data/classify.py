@@ -268,6 +268,11 @@ def run_detection(model, max_results, score_threshold, overlapping_factor, socke
                 logging.debug(f"Labels détectés sur {source_name}: {labels}")
                 if socketio:
                     socketio.emit("labels", {"source": source_name, "detected": labels})
+                # Vérification des labels pour déclencher un webhook
+                for label_data in labels:
+                    if label_data["label"] == "Finger snapping" and label_data["score"] >= 0.7:
+                        logging.info(f"Envoi webhook pour 'Finger snapping' sur {source_name}")
+                        send_classified_webhook(webhook_url, label_data["score"])
             return handle_labels
         
         # Vérifier si une source audio est configurée
