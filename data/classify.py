@@ -30,10 +30,10 @@ def classify_sound(score):
     else:
         return "knock"
 
-def send_classified_webhook(webhook_url, score):
+def send_classified_webhook(webhook_url, score, label=None):
     import time
     payload = {
-        "event": classify_sound(score),
+        "event": label if label else classify_sound(score),  # Priorité au label si disponible
         "score": score,
         "timestamp": time.time()
     }
@@ -273,7 +273,7 @@ def run_detection(model, max_results, score_threshold, overlapping_factor, socke
                 for label_data in labels:
                     if label_data["label"] in ["Finger snapping", "Clapping", "Knock"] and label_data["score"] >= 0.7:
                         logging.info(f"Envoi webhook pour 'Finger snapping' sur {source_name}")
-                        send_classified_webhook(webhook_url, label_data["score"])
+                        send_classified_webhook(webhook_url, label_data["score"], label_data["label"])
             return handle_labels
         
         # Vérifier si une source audio est configurée
